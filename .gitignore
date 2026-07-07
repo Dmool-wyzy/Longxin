@@ -1,0 +1,39 @@
+# Vivado / Xilinx generated files
+*.jou
+*.log
+*.str
+*.pb
+*.wdb
+*.dmp
+*.xpr_backup
+*.rst
+vivado*.str
+vivado*.jou
+vivado*.log
+.Xil/
+*.cache/
+*.hw/
+*.ip_user_files/
+*.sim/
+*.runs/
+*.gen/
+
+# Verilator / Simulation / Compilation artifacts
+obj_dir/
+*.vcd
+*.fst
+*.ghw
+*.out
+*.exe
+*.o
+*.d
+*.elf
+
+# IDE & OS files
+.vscode/
+.idea/
+*.swp
+*.tmp
+*~
+.DS_Store
+Thumbs.db
