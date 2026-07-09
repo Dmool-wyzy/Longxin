@@ -20,6 +20,7 @@ vivado*.log
 
 # Verilator / Simulation / Compilation artifacts
 obj_dir/
+xsim.dir/
 *.vcd
 *.fst
 *.ghw
