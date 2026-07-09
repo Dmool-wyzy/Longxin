@@ -21,9 +21,9 @@
         // 物理存储体声明
         reg [31:0] regs [0:31];      // 在芯片内部摆放32组触发器，每组容纳32比特
 
-	// 异步组合逻辑读
-	assign rdata1 = (raddr1 == 5'd0) ? 32'd0 : regs[raddr1];
-	assign rdata2 = (raddr2 == 5'd0) ? 32'd0 : regs[raddr2];
+	// 异步组合逻辑读 (支持内部写后读前递 Write-Through Bypass)
+	assign rdata1 = (raddr1 == 5'd0) ? 32'd0 : ((we && (waddr == raddr1)) ? wdata : regs[raddr1]);
+	assign rdata2 = (raddr2 == 5'd0) ? 32'd0 : ((we && (waddr == raddr2)) ? wdata : regs[raddr2]);
 
 	// 时钟同步时序写与异步复位
 	integer i;
