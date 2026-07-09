@@ -47,7 +47,11 @@ module axi_ram_uart #(
     // AXI B 通道
     output reg  [1:0]   bresp,
     output reg          bvalid,
-    input  wire         bready
+    input  wire         bready,
+
+    // 硬件物理串口发包接口 (FPGA 物理连线)
+    output reg          uart_tx_en,
+    output reg  [7:0]   uart_tx_char
 );
 
     // 物理 RAM 定义
@@ -120,9 +124,12 @@ module axi_ram_uart #(
             wready  <= 1'b1;
             bvalid  <= 1'b0;
             bresp   <= 2'b00;
-            got_aw  <= 1'b0;
-            got_w   <= 1'b0;
+            got_aw       <= 1'b0;
+            got_w        <= 1'b0;
+            uart_tx_en   <= 1'b0;
+            uart_tx_char <= 8'h00;
         end else begin
+            uart_tx_en <= 1'b0;
             if (bvalid && bready) begin
                 bvalid <= 1'b0;
             end
@@ -137,7 +144,9 @@ module axi_ram_uart #(
                 // 判断写地址是否为 UART 串口输出映射地址 (0x1FE40000 或 0xBFD003F8)
                 if ((got_aw ? lat_awaddr : awaddr) == 32'h1FE40000 ||
                     (got_aw ? lat_awaddr : awaddr) == 32'hBFD003F8) begin
-                    $write("%c", wdata[7:0]); // 实时输出串口字符
+                    $write("%c", wdata[7:0]); // 实时控制台仿真输出
+                    uart_tx_en   <= 1'b1;     // 触发硬件串口发包
+                    uart_tx_char <= wdata[7:0];
                 end else begin
                     // 写入 RAM
                     if ( ((got_aw ? lat_awaddr : awaddr) - 32'h1C000000) >> 2 < MEM_SIZE ) begin
