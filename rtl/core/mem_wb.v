@@ -7,6 +7,7 @@
 module mem_wb (
     input  wire        clk,
     input  wire        rst_n,
+    input  wire        stall,
 
     // MEM 级输入
     input  wire [31:0] mem_pc,
@@ -33,7 +34,7 @@ module mem_wb (
             wb_alu_res   <= 32'd0;
             wb_mem_rdata <= 32'd0;
             wb_rd        <= 5'd0;
-        end else begin
+        end else if (!stall) begin
             wb_pc        <= mem_pc;
             wb_reg_we    <= mem_reg_we;
             wb_wb_sel    <= mem_wb_sel;

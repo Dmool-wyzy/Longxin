@@ -18,7 +18,10 @@ module pipelined_core_top (
     output wire        dmem_re,
     output wire [31:0] dmem_addr,
     output wire [31:0] dmem_wdata,
-    input  wire [31:0] dmem_rdata
+    input  wire [31:0] dmem_rdata,
+
+    // 外部缓存/总线暂停输入
+    input  wire        ext_stall
 );
 
     // =========================================================================
@@ -28,10 +31,15 @@ module pipelined_core_top (
     // 冒险与前递单元控制信号
     wire [1:0] forward_a;
     wire [1:0] forward_b;
-    wire       pc_stall;
-    wire       if_id_stall;
-    wire       if_id_flush;
-    wire       id_ex_flush;
+    wire       hz_pc_stall;
+    wire       hz_if_id_stall;
+    wire       hz_if_id_flush;
+    wire       hz_id_ex_flush;
+
+    wire pc_stall        = hz_pc_stall | ext_stall;
+    wire if_id_stall     = hz_if_id_stall | ext_stall;
+    wire eff_if_id_flush = hz_if_id_flush & (~ext_stall);
+    wire eff_id_ex_flush = hz_id_ex_flush & (~ext_stall);
 
     // --- 1. IF 取指阶段信号 ---
     wire [31:0] if_pc;
@@ -120,7 +128,7 @@ module pipelined_core_top (
         .clk     (clk),
         .rst_n   (rst_n),
         .stall   (if_id_stall),
-        .flush   (if_id_flush),
+        .flush   (eff_if_id_flush),
         .if_pc   (if_pc),
         .if_inst (imem_data),
         .id_pc   (id_pc),
@@ -162,7 +170,8 @@ module pipelined_core_top (
     id_ex u_id_ex (
         .clk        (clk),
         .rst_n      (rst_n),
-        .flush      (id_ex_flush),
+        .stall      (ext_stall),
+        .flush      (eff_id_ex_flush),
         .id_pc      (id_pc),
         .id_reg_we  (id_reg_we),
         .id_alu_src (id_alu_src),
@@ -233,6 +242,7 @@ module pipelined_core_top (
     ex_mem u_ex_mem (
         .clk          (clk),
         .rst_n        (rst_n),
+        .stall        (ext_stall),
         .ex_pc        (ex_pc),
         .ex_reg_we    (ex_reg_we),
         .ex_mem_we    (ex_mem_we),
@@ -261,6 +271,7 @@ module pipelined_core_top (
     mem_wb u_mem_wb (
         .clk         (clk),
         .rst_n       (rst_n),
+        .stall       (ext_stall),
         .mem_pc      (mem_pc),
         .mem_reg_we  (mem_reg_we),
         .mem_wb_sel  (mem_wb_sel),
@@ -300,10 +311,10 @@ module pipelined_core_top (
         .ex_br_taken (ex_br_taken),
         .forward_a   (forward_a),
         .forward_b   (forward_b),
-        .pc_stall    (pc_stall),
-        .if_id_stall (if_id_stall),
-        .if_id_flush (if_id_flush),
-        .id_ex_flush (id_ex_flush)
+        .pc_stall    (hz_pc_stall),
+        .if_id_stall (hz_if_id_stall),
+        .if_id_flush (hz_if_id_flush),
+        .id_ex_flush (hz_id_ex_flush)
     );
 
 endmodule

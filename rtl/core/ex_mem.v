@@ -7,6 +7,7 @@
 module ex_mem (
     input  wire        clk,
     input  wire        rst_n,
+    input  wire        stall,
 
     // EX 级输入
     input  wire [31:0] ex_pc,
@@ -39,7 +40,7 @@ module ex_mem (
             mem_alu_res <= 32'd0;
             mem_wdata   <= 32'd0;
             mem_rd      <= 5'd0;
-        end else begin
+        end else if (!stall) begin
             mem_pc      <= ex_pc;
             mem_reg_we  <= ex_reg_we;
             mem_mem_we  <= ex_mem_we;
